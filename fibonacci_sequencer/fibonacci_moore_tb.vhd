@@ -3,15 +3,15 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use ieee.numeric_std.all;
 
-entity fibonacci_mealy_tb is
-end fibonacci_mealy_tb;
+entity fibonacci_moore_tb is
+end fibonacci_moore_tb;
 
-architecture tb of fibonacci_mealy_tb is
+architecture tb of fibonacci_moore_tb is
 
-    component fibonacci_mealy
+    component fibonacci_moore
         generic(
             RESULT_WIDTH: integer := 14;
-            SEQUENCE_NUM: integer := 18;
+            SEQUENCE_NUM: integer := 20;
             INPUT_WIDTH: integer := 4
         );
         port ( 
@@ -37,7 +37,7 @@ architecture tb of fibonacci_mealy_tb is
 begin
     
     -- Instantation of unit under test
-    uut: fibonacci_mealy port map (
+    uut: fibonacci_moore port map (
         clk => clk,
         start => start,
         reset => reset,
@@ -61,7 +61,7 @@ begin
     -- Stimuli
     Stimuli: process
     begin
-        for i in 0 to 19 loop
+        for i in 0 to 21 loop
             wait for 200 ns;
             num <= std_logic_vector(to_unsigned(i,5));
             start <= '1';

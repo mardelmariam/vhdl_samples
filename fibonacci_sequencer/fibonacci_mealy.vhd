@@ -11,6 +11,7 @@ use ieee.numeric_std.all;
 entity fibonacci_mealy is
     generic(
         RESULT_WIDTH: integer := 14;
+        SEQUENCE_NUM: integer := 18;
         INPUT_WIDTH: integer := 4
     );
     port ( 
@@ -63,7 +64,7 @@ begin
     end process;
     
     -- Written as a Mealy-type FSM
-    FSM: process(clk, start, state_reg, reset, num)
+    FSM: process(clk, start, state_reg, reset, num, n_reg)
     begin
         if reset = '1' then
             t0_next <= (others=>'0');
@@ -78,7 +79,7 @@ begin
                 
                 -- Idle state: waits for the start event
                 when idle =>
-                    if (start='1' and (unsigned(num) <= RESULT_WIDTH)) then
+                    if (start='1' and (unsigned(num) <= SEQUENCE_NUM)) then
                         t0_next <= (others=>'0');
                         t1_next <= to_unsigned(1, RESULT_WIDTH);
                         n_next <= unsigned(num);
@@ -87,34 +88,38 @@ begin
                     else
                         t0_next <= (others=>'0');
                         t1_next <= (others=>'0');
-                        n_next <= (others=>'0');
+                        n_next <= n_next;
                         valid <= '0';
                         state_next <= idle;    
                     end if;
                 
                 -- Operation state         
                 when op =>
+                    valid <= '1';
                     if n_reg = n_lower_limit then
                         t1_next <= (others=>'0');
                         t0_next <= t0_next;
-                        n_next <= n_next;
-                        valid <= '0';
+                        n_next <= n_lower_limit;
                         state_next <= idle;
                     else
+                        t1_next <= t1_next + t0_next;
+                        t0_next <= t1_next;
                         if n_reg = to_unsigned(1, INPUT_WIDTH) then
-                            t1_next <= t1_next;
-                            t0_next <= t0_next;
-                            n_next <= n_next;
-                            valid <= '0';
+                            n_next <= to_unsigned(1, INPUT_WIDTH+1);
                             state_next <= idle;
                         else
-                            t1_next <= t1_next + t0_next;
-                            t0_next <= t1_next;
-                            n_next <= n_next - 1;
-                            valid <= '1';
+                            n_next <= to_unsigned(1, INPUT_WIDTH+1) when n_next = to_unsigned(1, INPUT_WIDTH+1) else n_next-1;
                             state_next <= op;                        
                         end if;
                     end if;
+                
+                -- If the circuit falls under other state values
+                when others =>
+                    t0_next <= (others=>'0');
+                    t1_next <= (others=>'0');
+                    n_next <= (others=>'0');
+                    valid <= '0';
+                    state_next <= idle;                   
 
             end case;
         end if;
